@@ -66,19 +66,19 @@ static int kvm_handle_wfx(struct kvm_vcpu *vcpu, struct kvm_run *run)
 }
 
 static exit_handle_fn arm_exit_handlers[] = {
-	[ESR_EL2_EC_WFI]	= kvm_handle_wfx,
-	[ESR_EL2_EC_CP15_32]	= kvm_handle_cp15_32,
-	[ESR_EL2_EC_CP15_64]	= kvm_handle_cp15_64,
-	[ESR_EL2_EC_CP14_MR]	= kvm_handle_cp14_access,
-	[ESR_EL2_EC_CP14_LS]	= kvm_handle_cp14_load_store,
-	[ESR_EL2_EC_CP14_64]	= kvm_handle_cp14_access,
-	[ESR_EL2_EC_HVC32]	= handle_hvc,
-	[ESR_EL2_EC_SMC32]	= handle_smc,
-	[ESR_EL2_EC_HVC64]	= handle_hvc,
-	[ESR_EL2_EC_SMC64]	= handle_smc,
-	[ESR_EL2_EC_SYS64]	= kvm_handle_sys_reg,
-	[ESR_EL2_EC_IABT]	= kvm_handle_guest_abort,
-	[ESR_EL2_EC_DABT]	= kvm_handle_guest_abort,
+	[ESR_EL2_EC_WFI]	= kvm_handle_wfx,		// 0x01 X
+	[ESR_EL2_EC_CP15_32]	= kvm_handle_cp15_32,		// 0x03
+	[ESR_EL2_EC_CP15_64]	= kvm_handle_cp15_64,		// 0x04
+	[ESR_EL2_EC_CP14_MR]	= kvm_handle_cp14_access,	// 0x05 X
+	[ESR_EL2_EC_CP14_LS]	= kvm_handle_cp14_load_store,	// 0x06 X
+	[ESR_EL2_EC_CP14_64]	= kvm_handle_cp14_access,	// 0x0C X
+	[ESR_EL2_EC_HVC32]	= handle_hvc,			// 0x12
+	[ESR_EL2_EC_SMC32]	= handle_smc,			// 0x13
+	[ESR_EL2_EC_HVC64]	= handle_hvc,			// 0x16
+	[ESR_EL2_EC_SMC64]	= handle_smc,			// 0x17
+	[ESR_EL2_EC_SYS64]	= kvm_handle_sys_reg,		// 0x18
+	[ESR_EL2_EC_IABT]	= kvm_handle_guest_abort,	// 0x20 X
+	[ESR_EL2_EC_DABT]	= kvm_handle_guest_abort,	// 0x24 X
 };
 
 static exit_handle_fn kvm_get_exit_handler(struct kvm_vcpu *vcpu)
@@ -90,6 +90,34 @@ static exit_handle_fn kvm_get_exit_handler(struct kvm_vcpu *vcpu)
 		kvm_err("Unknown exception class: hsr: %#08x\n",
 			(unsigned int)kvm_vcpu_get_hsr(vcpu));
 		BUG();
+	}
+
+	if (ESR_EL2_EC_CP14_MR == hsr_ec
+	    || ESR_EL2_EC_CP14_LS == hsr_ec
+	    || ESR_EL2_EC_CP14_64 == hsr_ec
+	    || ESR_EL2_EC_SMC32 == hsr_ec
+	    || ESR_EL2_EC_SMC64 == hsr_ec
+	    || ESR_EL2_EC_HVC32 == hsr_ec
+	    || ESR_EL2_EC_HVC64 == hsr_ec
+	){
+		vcpu->unhandled_trap_count++;
+		printk("unhandled ec: 0x%x\n", hsr_ec);
+	}
+	else if (ESR_EL2_EC_WFI == hsr_ec
+	){
+		vcpu->io_trap_count++;
+	}
+	else if (ESR_EL2_EC_IABT == hsr_ec
+		 || ESR_EL2_EC_DABT == hsr_ec
+	){
+		// we first treat this trap as a mem-trap,
+		// and will check if it's really trap caused by memory in
+		// `kvm_handle_guest_abord`, if it's found out that the trap
+		// was actually caused by I/O, trap count will be adjusted.
+		vcpu->mem_trap_count++;
+	}
+	else {
+		vcpu->cpu_trap_count++;
 	}
 
 	return arm_exit_handlers[hsr_ec];

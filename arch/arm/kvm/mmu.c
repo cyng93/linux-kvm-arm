@@ -795,6 +795,9 @@ int kvm_handle_guest_abort(struct kvm_vcpu *vcpu, struct kvm_run *run)
 		 */
 		fault_ipa |= kvm_vcpu_get_hfar(vcpu) & ((1 << 12) - 1);
 		ret = io_mem_abort(vcpu, run, fault_ipa);
+
+		vcpu->mem_trap_count--;
+		vcpu->io_trap_count++;
 		goto out_unlock;
 	}
 

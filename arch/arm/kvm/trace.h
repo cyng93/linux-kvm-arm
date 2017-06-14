@@ -224,26 +224,49 @@ TRACE_EVENT(kvm_hvc,
 );
 
 #ifdef CONFIG_VM_HW2
+// TRACE_EVENT(kvm_vm_hw2,
+// 	TP_PROTO(unsigned long cpu_trap_count, unsigned long mem_trap_count,
+// 						unsigned long io_trap_count),
+// 	TP_ARGS(cpu_trap_count, mem_trap_count, io_trap_count),
+//
+// 	TP_STRUCT__entry(
+// 		__field(	unsigned long, cpu_trap_count	)
+// 		__field(	unsigned long, mem_trap_count	)
+// 		__field(	unsigned long, io_trap_count	)
+// 	),
+//
+// 	TP_fast_assign(
+// 		__entry->cpu_trap_count = cpu_trap_count;
+// 		__entry->mem_trap_count = mem_trap_count;
+// 		__entry->io_trap_count  = io_trap_count;
+// 	),
+//
+// 	TP_printk("CPU trap %lu, MEM trap %lu, IO trap %lu",
+// 		  __entry->cpu_trap_count,  __entry->mem_trap_count,
+// 		  __entry->io_trap_count)
+// );
 TRACE_EVENT(kvm_vm_hw2,
 	TP_PROTO(unsigned long cpu_trap_count, unsigned long mem_trap_count,
-						unsigned long io_trap_count),
-	TP_ARGS(cpu_trap_count, mem_trap_count, io_trap_count),
+		 unsigned long io_trap_count, unsigned long unhandled_trap_count),
+	TP_ARGS(cpu_trap_count, mem_trap_count, io_trap_count, unhandled_trap_count),
 
 	TP_STRUCT__entry(
 		__field(	unsigned long, cpu_trap_count	)
 		__field(	unsigned long, mem_trap_count	)
 		__field(	unsigned long, io_trap_count	)
+		__field(	unsigned long, unhandled_trap_count	)
 	),
 
 	TP_fast_assign(
 		__entry->cpu_trap_count = cpu_trap_count;
 		__entry->mem_trap_count = mem_trap_count;
 		__entry->io_trap_count  = io_trap_count;
+		__entry->unhandled_trap_count  = unhandled_trap_count;
 	),
 
-	TP_printk("CPU trap %llu, MEM trap %llu, IO trap %llu",
+	TP_printk("CPU trap %lu, MEM trap %lu, IO trap %lu, GG trap %lu",
 		  __entry->cpu_trap_count,  __entry->mem_trap_count,
-		  __entry->io_trap_count)
+		  __entry->io_trap_count, __entry->unhandled_trap_count)
 );
 #endif
 

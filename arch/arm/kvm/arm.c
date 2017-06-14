@@ -604,7 +604,7 @@ int kvm_arch_vcpu_ioctl_run(struct kvm_vcpu *vcpu, struct kvm_run *run)
 
 		ret = handle_exit(vcpu, run, ret);
 #ifdef CONFIG_VM_HW2
-		trace_kvm_vm_hw2(vcpu->cpu_trap_count, vcpu->mem_trap_count, vcpu->io_trap_count);
+		trace_kvm_vm_hw2(vcpu->cpu_trap_count, vcpu->mem_trap_count, vcpu->io_trap_count, vcpu->unhandled_trap_count);
 #endif
 	}
 

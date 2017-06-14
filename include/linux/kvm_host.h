@@ -272,6 +272,7 @@ struct kvm_vcpu {
 	unsigned long cpu_trap_count;
 	unsigned long mem_trap_count;
 	unsigned long io_trap_count;
+	unsigned long unhandled_trap_count;
 #endif
 
 	bool preempted;
